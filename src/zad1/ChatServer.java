@@ -22,6 +22,7 @@ import java.util.Set;
 
 public class ChatServer {
 
+	private Thread thread;
 	private ServerSocketChannel serverSocketChannel;
 	private Selector selector;
 	private String host;
@@ -32,7 +33,9 @@ public class ChatServer {
 		this.host = host;
 		this.port = port;
 		this.logList = new ArrayList<>();
+		
 	}
+
 
 	// Buffer, do, ktorego beda wczytywane dane z kanalu
 	private static final int BSIZE = 256;
@@ -128,6 +131,7 @@ public class ChatServer {
 	}
 
 	public void startServer() {
+		thread = new Thread(()->{
 		try {
 			serverSocketChannel = ServerSocketChannel.open();// utworzenie kanalu gniazda serwera
 			serverSocketChannel.configureBlocking(false);// tryb nieblokujacy
@@ -142,16 +146,22 @@ public class ChatServer {
 		}
 		System.out.println("Server started");
 		handleServiceConnections();
-
+		});
+	
+		thread.start();
 	}
 
 	public void stopServer() {
 		try {
+			thread.interrupt();
+			selector.close();
 			serverSocketChannel.close();
+		
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		}
+		System.out.println("Server stopped");
 	}
 
 	public String getServerLog() {
